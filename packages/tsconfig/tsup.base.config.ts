@@ -11,4 +11,7 @@ export default defineConfig({
   dts: false,
   tsconfig: './tsconfig.json',
   format: 'esm',
+  noExternal: [
+    "@cpa"
+  ],
 });

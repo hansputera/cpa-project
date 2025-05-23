@@ -1,13 +1,15 @@
 {
-  "name": "project-name-here",
+  "name": "cpa-project",
   "version": "0.0.1",
-  "description": "project description here",
+  "description": "Crypto Price Alert Project",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "node preinstall.js --max-old-space-size=10M",
-    "lint": "biome lint --write ./src",
-    "format": "biome format --write ./src",
-    "build": "tsup",
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint --parallel",
+    "format": "turbo run format --parallel",
+    "start": "turbo run start",
     "hook": "node hook.js --max-old-space-size=50M"
   },
   "type": "module",
@@ -20,13 +22,14 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
-    "@swc/core": "^1.7.23",
-    "@types/node": "^20.16.5",
     "husky": "^8.0.3",
     "is-ci": "^3.0.1",
     "is-git-dirty": "^2.0.2",
-    "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
-  }
+    "turbo": "^2.5.3"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }

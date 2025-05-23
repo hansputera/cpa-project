@@ -1,0 +1,5 @@
+{
+    "name": "@cpa/biome-config",
+    "description": "CPA Biome Config",
+    "private": true
+}

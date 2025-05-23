@@ -3,11 +3,10 @@
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "target": "ESNext",
-        "module": "ESNext",
+        "module": "NodeNext",
         "strictNullChecks": true,
         "noImplicitAny": true,
         "skipLibCheck": true,
-        "outDir": "dist",
         "baseUrl": ".",
         "noImplicitReturns": true,
         "paths": {
