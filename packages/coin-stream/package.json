@@ -1,4 +1,26 @@
 {
     "name": "@cpa/coin-stream",
-    "description": "Subscribe coin stream"
+    "description": "Subscribe coin stream",
+    "private": true,
+    "dependencies": {
+        "@cpa/biome-config": "workspace:*",
+        "@cpa/tsconfig": "workspace:*",
+        "ws": "^8.18.2"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3",
+        "@swc/core": "^1.11.29",
+        "@types/node": "^22.15.21",
+        "@types/websocket": "^1.0.10",
+        "@types/ws": "^8.18.1",
+        "tsup": "^8.5.0",
+        "typescript": "^5.8.3"
+    },
+    "main": "./dist/index.js",
+    "type": "module",
+    "scripts": {
+        "lint": "biome lint --write ./src",
+        "format": "biome format --write ./src",
+        "build": "tsup"
+    }
 }

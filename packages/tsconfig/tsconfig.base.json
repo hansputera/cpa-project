@@ -15,7 +15,5 @@
         "moduleResolution": "nodenext",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
-    },
-    "exclude": ["node_modules", "dist"],
-    "include": ["src/**/*"]
+    }
 }

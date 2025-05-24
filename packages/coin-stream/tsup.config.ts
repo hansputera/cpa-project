@@ -8,10 +8,7 @@ export default defineConfig({
   minifyIdentifiers: true,
   target: ['node16', 'node18'],
   platform: 'node',
-  dts: false,
+  dts: true,
   tsconfig: './tsconfig.json',
   format: 'esm',
-  noExternal: [
-    "@cpa"
-  ],
 });

@@ -6,6 +6,7 @@
         "@biomejs/biome": "1.8.3",
         "@cpa/tsconfig": "workspace:*",
         "@cpa/biome-config": "workspace:*",
+        "@cpa/coin-stream": "workspace:*",
         "@dotenvx/dotenvx": "^1.44.1",
         "@swc/core": "^1.11.29",
         "@types/node": "^22.15.21",

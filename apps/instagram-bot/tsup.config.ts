@@ -1,3 +1,14 @@
-import tsup from "@cpa/tsconfig/tsup.base.config";
+import {defineConfig} from 'tsup';
 
-export default tsup;
+export default defineConfig({
+  entry: ['./src/index.ts'],
+  outDir: './dist',
+  bundle: false,
+  minifyWhitespace: true,
+  minifyIdentifiers: true,
+  target: ['node16', 'node18'],
+  platform: 'node',
+  dts: false,
+  tsconfig: './tsconfig.json',
+  format: 'esm',
+});
