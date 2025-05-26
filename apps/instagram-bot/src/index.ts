@@ -1,7 +1,12 @@
-import { BinanceCoinProvider } from "@cpa/coin-stream";
+import { TokocryptoCoinProvider } from "@cpa/coin-stream";
 
-const binance = new BinanceCoinProvider("BTCUSDT", {
-	tokens: ["btcusdt@aggTrade"],
+const binance = new TokocryptoCoinProvider("BTCUSDT", {
+	tokens: [
+		"btcusdt@aggTrade",
+		"btcusdt@kline_1d",
+		"!miniTicker@arr",
+		"btcusdt@depth",
+	],
 });
 
 binance.on("updatePrice", console.log);

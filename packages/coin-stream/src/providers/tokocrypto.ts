@@ -1,11 +1,15 @@
 import { WebSocket } from "ws";
 import { CoinStreamProvider } from "./base.js";
-import type { BinanceCoinProviderTypes } from "../types/index.js";
+import type { TokocryptoCoinProviderTypes } from "../types/index.js";
 import { jsonParse } from "../utils/jsonParse.js";
 import { toFloatPrecise } from "../utils/toFloatPrecise.js";
 
-export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderTypes.Payload> {
+export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinProviderTypes.Payload> {
 	protected ws?: WebSocket;
+	protected wsUrls = [
+		"wss://stream-cloud.binanceru.net/stream",
+		"wss://stream-toko.2meta.app/stream",
+	];
 
 	/**
 	 * This variable used to count how much we tried to connect with binance stream socket
@@ -25,7 +29,9 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 			this.ws = undefined;
 		}
 
-		this.ws = new WebSocket("wss://stream.binance.com/stream");
+		const randomWsUrl =
+			this.wsUrls[Math.floor(Math.random() * this.wsUrls.length)];
+		this.ws = new WebSocket(randomWsUrl);
 
 		// Register the websocket client events
 		this.ws.on("open", this.onWsConnect.bind(this));
@@ -54,7 +60,7 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 
 		// Should throw an error if retry count reach 3 attempts
 		if (this.retryCount >= 3) {
-			throw new Error("Binance coin stream provider couldnt connect");
+			throw new Error("Tokocrypto coin stream provider couldnt connect");
 		}
 
 		// Increment the retry count, and reinitialize the socket
@@ -65,20 +71,20 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 	protected onMessage(data: WebSocket.RawData) {
 		const utf8Content = data.toString("utf8");
 		const json =
-			jsonParse<BinanceCoinProviderTypes.RawStreamEvent>(utf8Content);
+			jsonParse<TokocryptoCoinProviderTypes.RawStreamEvent>(utf8Content);
 
-		if (json?.data.p) {
+		if (json && !Array.isArray(json?.data) && json.data?.p) {
 			// p = price, q = amount trx, s = token, T = time
+
 			const priceBi = toFloatPrecise(
 				json.data.p,
 				json.data.p.split(".").at(-1)?.length ?? 9,
 			);
-
 			const amount = toFloatPrecise(
 				json.data.q,
 				json.data.q.split(".").at(-1)?.length ?? 9,
 			);
-			const token = json.data.p;
+			const token = json.data.s;
 			const date = new Date(json.data.T);
 
 			this.emit("updatePrice", {

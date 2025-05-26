@@ -11,9 +11,19 @@ export namespace CoinStreamTypes {
 		 */
 		price: number;
 		/**
+		 * Price display in string
+		 * @example 5.000
+		 */
+		priceStr: string;
+		/**
 		 * Transaction amount
 		 */
 		amount: number;
+		/**
+		 * Transaction amount display in string
+		 * @example 0.0005
+		 */
+		amountStr: string;
 		/**
 		 * When the transaction happended
 		 */
@@ -43,4 +53,9 @@ export namespace BinanceCoinProviderTypes {
 			T: number;
 		};
 	};
+}
+
+export namespace TokocryptoCoinProviderTypes {
+	export type Payload = BinanceCoinProviderTypes.Payload;
+	export type RawStreamEvent = BinanceCoinProviderTypes.RawStreamEvent;
 }
