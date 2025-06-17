@@ -5,6 +5,7 @@
     "dependencies": {
         "@cpa/biome-config": "workspace:*",
         "@cpa/tsconfig": "workspace:*",
+        "dnum": "^2.15.0",
         "ws": "^8.18.2"
     },
     "devDependencies": {

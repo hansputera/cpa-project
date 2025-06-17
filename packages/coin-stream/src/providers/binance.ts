@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 import { CoinStreamProvider } from "./base.js";
 import type { BinanceCoinProviderTypes } from "../types/index.js";
 import { jsonParse } from "../utils/jsonParse.js";
-import { toFloatPrecise } from "../utils/toFloatPrecise.js";
+import * as dnum from "dnum";
 
 export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderTypes.Payload> {
 	protected ws?: WebSocket;
@@ -69,22 +69,13 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 
 		if (json?.data.p) {
 			// p = price, q = amount trx, s = token, T = time
-			const priceBi = toFloatPrecise(
-				json.data.p,
-				json.data.p.split(".").at(-1)?.length ?? 9,
-			);
-
-			const amount = toFloatPrecise(
-				json.data.q,
-				json.data.q.split(".").at(-1)?.length ?? 9,
-			);
 			const token = json.data.p;
 			const date = new Date(json.data.T);
 
 			this.emit("updatePrice", {
-				price: priceBi,
+				price: dnum.from(json.data.p),
 				token,
-				amount,
+				amount: dnum.from(json.data.q),
 				date,
 				priceStr: json.data.p,
 				amountStr: json.data.q,

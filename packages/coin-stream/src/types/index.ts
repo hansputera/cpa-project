@@ -1,3 +1,5 @@
+import type { Dnum } from "dnum";
+
 export namespace CoinStreamTypes {
 	export type PriceEventData = {
 		/**
@@ -9,7 +11,7 @@ export namespace CoinStreamTypes {
 		 * Coin price
 		 * @example 5000
 		 */
-		price: number;
+		price: Dnum;
 		/**
 		 * Price display in string
 		 * @example 5.000
@@ -18,7 +20,7 @@ export namespace CoinStreamTypes {
 		/**
 		 * Transaction amount
 		 */
-		amount: number;
+		amount: Dnum;
 		/**
 		 * Transaction amount display in string
 		 * @example 0.0005

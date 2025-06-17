@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 import { CoinStreamProvider } from "./base.js";
 import type { TokocryptoCoinProviderTypes } from "../types/index.js";
 import { jsonParse } from "../utils/jsonParse.js";
-import { toFloatPrecise } from "../utils/toFloatPrecise.js";
+import * as dnum from "dnum";
 
 export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinProviderTypes.Payload> {
 	protected ws?: WebSocket;
@@ -75,22 +75,13 @@ export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinPro
 
 		if (json && !Array.isArray(json?.data) && json.data?.p) {
 			// p = price, q = amount trx, s = token, T = time
-
-			const priceBi = toFloatPrecise(
-				json.data.p,
-				json.data.p.split(".").at(-1)?.length ?? 9,
-			);
-			const amount = toFloatPrecise(
-				json.data.q,
-				json.data.q.split(".").at(-1)?.length ?? 9,
-			);
 			const token = json.data.s;
 			const date = new Date(json.data.T);
 
 			this.emit("updatePrice", {
-				price: priceBi,
+				price: dnum.from(json.data.p),
 				token,
-				amount,
+				amount: dnum.from(json.data.q),
 				date,
 				priceStr: json.data.p,
 				amountStr: json.data.q,
