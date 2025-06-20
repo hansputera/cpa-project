@@ -4,9 +4,9 @@
     "version": "0.0.1",
     "devDependencies": {
         "@biomejs/biome": "1.8.3",
-        "@cpa/tsconfig": "workspace:*",
         "@cpa/biome-config": "workspace:*",
         "@cpa/coin-stream": "workspace:*",
+        "@cpa/tsconfig": "workspace:*",
         "@dotenvx/dotenvx": "^1.44.1",
         "@swc/core": "^1.11.29",
         "@types/node": "^22.15.21",
@@ -20,5 +20,11 @@
         "start": "dotenvx run -- node ."
     },
     "main": "./dist/index.js",
-    "type": "module"
+    "type": "module",
+    "dependencies": {
+        "envalid": "^8.0.0",
+        "instagram-private-api": "^1.46.1",
+        "ioredis": "^5.6.1",
+        "@cpa/twitter-news-stream": "workspace:*"
+    }
 }
