@@ -1,0 +1,29 @@
+{
+    "name": "@cpa/twitter-news-stream",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Twitter News Stream Pooler",
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3",
+        "@swc/core": "^1.12.1",
+        "@types/node": "^22.15.32",
+        "tsup": "^8.5.0",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "@cpa/biome-config": "workspace:*",
+        "@cpa/tsconfig": "workspace:*",
+        "@the-convocation/twitter-scraper": "^0.17.1",
+        "bullmq": "^5.54.3",
+        "consola": "^3.4.2",
+        "ioredis": "^5.6.1",
+        "tough-cookie": "^5.1.2"
+    },
+    "scripts": {
+        "lint": "biome lint --write ./src",
+        "format": "biome format --write ./src",
+        "build": "tsup"
+    },
+    "main": "./dist/index.js",
+    "type": "module"
+}

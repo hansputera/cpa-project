@@ -70,21 +70,55 @@ export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinPro
 
 	protected onMessage(data: WebSocket.RawData) {
 		const utf8Content = data.toString("utf8");
-		const json =
-			jsonParse<TokocryptoCoinProviderTypes.RawStreamEvent>(utf8Content);
+		const json = jsonParse<
+			| TokocryptoCoinProviderTypes.RawStreamAggTrade
+			| TokocryptoCoinProviderTypes.RawStreamKline
+		>(utf8Content);
 
-		if (json && !Array.isArray(json?.data) && json.data?.p) {
+		const klineJson = json as TokocryptoCoinProviderTypes.RawStreamKline;
+		const tradeJson = json as TokocryptoCoinProviderTypes.RawStreamAggTrade;
+
+		if (!json?.stream) {
+			return;
+		}
+
+		// If the json data is an array and has a property 'stream'
+		// then we can assume this is a kline event
+		if (klineJson.stream.includes("kline")) {
+			// k = kline data
+			const klineData = klineJson.data.k;
+
+			this.emit("kline", {
+				startTime: new Date(klineData.t),
+				endTime: new Date(klineData.T),
+				openPrice: dnum.from(klineData.o),
+				closePrice: dnum.from(klineData.c),
+				highPrice: dnum.from(klineData.h),
+				lowPrice: dnum.from(klineData.l),
+				volume: dnum.from(klineData.v),
+				volumeAsset: dnum.from(klineData.V),
+				tradeCount: klineData.n,
+				isClosed: klineData.x,
+				takerBuyBaseVolume: dnum.from(klineData.B),
+				takerBuyQuoteVolume: dnum.from(klineData.Q),
+			});
+			return;
+		}
+
+		// If the json data is not an array and has a property 'data'
+		// then we can assume this is a trade event
+		if (tradeJson && !Array.isArray(tradeJson?.data) && tradeJson.data?.p) {
 			// p = price, q = amount trx, s = token, T = time
 			const token = json.data.s;
-			const date = new Date(json.data.T);
+			const date = new Date(tradeJson.data.T);
 
-			this.emit("updatePrice", {
-				price: dnum.from(json.data.p),
+			this.emit("liveTrade", {
+				price: dnum.from(tradeJson.data.p),
 				token,
-				amount: dnum.from(json.data.q),
+				amount: dnum.from(tradeJson.data.q),
 				date,
-				priceStr: json.data.p,
-				amountStr: json.data.q,
+				priceStr: tradeJson.data.p,
+				amountStr: tradeJson.data.q,
 			});
 		}
 	}

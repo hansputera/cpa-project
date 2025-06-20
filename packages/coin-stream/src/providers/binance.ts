@@ -64,21 +64,56 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 
 	protected onMessage(data: WebSocket.RawData) {
 		const utf8Content = data.toString("utf8");
-		const json =
-			jsonParse<BinanceCoinProviderTypes.RawStreamEvent>(utf8Content);
+		const json = jsonParse<
+			| BinanceCoinProviderTypes.RawStreamAggTrade
+			| BinanceCoinProviderTypes.RawStreamKline
+		>(utf8Content);
 
-		if (json?.data.p) {
+		if (!json?.stream) {
+			return;
+		}
+
+		const klineJson = json as BinanceCoinProviderTypes.RawStreamKline;
+		const tradeJson = json as BinanceCoinProviderTypes.RawStreamAggTrade;
+
+		if (!json?.stream.includes("kline")) {
+			this.emit("kline", {
+				startTime: new Date(klineJson.data.k.t),
+				endTime: new Date(klineJson.data.k.T),
+				openPrice: dnum.from(klineJson.data.k.o),
+				closePrice: dnum.from(klineJson.data.k.c),
+				highPrice: dnum.from(klineJson.data.k.h),
+				lowPrice: dnum.from(klineJson.data.k.l),
+				volume: dnum.from(klineJson.data.k.v),
+				volumeAsset: dnum.from(klineJson.data.k.V),
+				tradeCount: klineJson.data.k.n,
+				isClosed: klineJson.data.k.x,
+				takerBuyBaseVolume: dnum.from(klineJson.data.k.B),
+				takerBuyQuoteVolume: dnum.from(klineJson.data.k.Q),
+			});
+			return;
+		}
+
+		// If the json data is an array and has a property 'stream'
+		// then we can assume this is a kline event
+		if (klineJson.stream.includes("kline")) {
+			console.log(klineJson);
+		}
+
+		// If the json data is not an array and has a property 'data'
+		// then we can assume this is a trade event
+		if (tradeJson && !Array.isArray(tradeJson?.data) && tradeJson.data?.p) {
 			// p = price, q = amount trx, s = token, T = time
-			const token = json.data.p;
-			const date = new Date(json.data.T);
+			const token = json.data.s;
+			const date = new Date(tradeJson.data.T);
 
-			this.emit("updatePrice", {
-				price: dnum.from(json.data.p),
+			this.emit("liveTrade", {
+				price: dnum.from(tradeJson.data.p),
 				token,
-				amount: dnum.from(json.data.q),
+				amount: dnum.from(tradeJson.data.q),
 				date,
-				priceStr: json.data.p,
-				amountStr: json.data.q,
+				priceStr: tradeJson.data.p,
+				amountStr: tradeJson.data.q,
 			});
 		}
 	}
