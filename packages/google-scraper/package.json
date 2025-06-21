@@ -1,0 +1,27 @@
+{
+    "name": "@cpa/google-scraper",
+    "version": "0.0.1",
+    "description": "Google Scraper for CPA",
+    "private": true,
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3",
+        "@swc/core": "^1.12.1",
+        "@types/node": "^22.15.32",
+        "tsup": "^8.5.0",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "@cpa/biome-config": "workspace:*",
+        "@cpa/tsconfig": "workspace:*",
+        "google-sr": "^5.0.0",
+        "got": "^14.4.7",
+        "ioredis": "^5.6.1"
+    },
+    "scripts": {
+        "lint": "biome lint --write ./src",
+        "format": "biome format --write ./src",
+        "build": "tsup"
+    },
+    "main": "./dist/index.js",
+    "type": "module"
+}

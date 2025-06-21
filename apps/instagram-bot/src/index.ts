@@ -1,5 +1,6 @@
 import { TokocryptoCoinProvider, DecimalNumber } from "@cpa/coin-stream";
 import { TwitterNews } from "@cpa/twitter-news-stream";
+import { GoogleScraper } from "@cpa/google-scraper";
 import { getPriceCache, setPriceCache } from "./services/prices.js";
 import { configEnv } from "./config/config.js";
 
@@ -16,8 +17,9 @@ const twitter = new TwitterNews({
 		{
 			username: "DeItaone",
 			intervalPool: 20_000,
-		}, {
-			username: 'FirstSquawk',
+		},
+		{
+			username: "FirstSquawk",
 			intervalPool: 20_000,
 		},
 	],
@@ -26,11 +28,21 @@ const twitter = new TwitterNews({
 		redisUri: configEnv.REDIS_URI,
 	},
 });
+const google = new GoogleScraper({
+	redisUri: configEnv.REDIS_URI,
+	ttl: 60_000,
+});
 
 twitter.on("fetchTweet", async (data) => {
 	const newsTweet = data.tweets.slice(0, data.newsCount);
 	console.log(
 		`[!!!!!!!!!!!!! TWEET FROM ${data.user.username} !!!!!!!!!!!!] -> ${newsTweet.map((t) => t.text).join(", ")}`,
+	);
+
+	const tweetTitle = newsTweet[0].text ?? "";
+	const searchResults = await google.search(tweetTitle);
+	console.log(
+		`Found ${searchResults.length} news in Google for ${tweetTitle}\n${searchResults.map((n) => `${n.page.pageTitle} - ${n.page.pageUrl}`).join("\n")}`,
 	);
 });
 
