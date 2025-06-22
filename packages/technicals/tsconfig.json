@@ -1,0 +1,5 @@
+{
+    "extends": "@cpa/tsconfig/tsconfig.base.json",
+    "exclude": ["node_modules", "dist"],
+    "include": ["src/**/*"]
+}

@@ -1,0 +1,8 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"overrides": [
+		{
+			"include": ["@cpa/biome-config/biome.base.json"]
+		}
+	]
+}
