@@ -62,6 +62,36 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 		this.init();
 	}
 
+	public async getKline(): Promise<BinanceCoinProviderTypes.KlineDatas> {
+		const url = new URL("https://www.binance.com/api/v3/uiKlines");
+		url.searchParams.set("limit", "1000");
+		url.searchParams.set("symbol", this.token);
+		url.searchParams.set("interval", this.timeframe);
+
+		const json = (await fetch(url).catch(() => undefined))
+			?.json()
+			.catch(() => undefined) as
+			| BinanceCoinProviderTypes.UiKlineResponse
+			| undefined;
+		if (!json) {
+			return [];
+		}
+
+		return json.map((j) => ({
+			openTime: j[0],
+			open: dnum.from(j[1]),
+			high: dnum.from(j[2]),
+			low: dnum.from(j[3]),
+			close: dnum.from(j[4]),
+			volume: dnum.from(j[5]),
+			closeTime: j[6],
+			quoteAssetVolume: dnum.from(j[7]),
+			tradeCount: j[8],
+			takerBuyBaseAssetVolume: dnum.from(j[8]),
+			takerBuyQuoteAssetVolume: dnum.from(j[9]),
+		}));
+	}
+
 	protected onMessage(data: WebSocket.RawData) {
 		const utf8Content = data.toString("utf8");
 		const json = jsonParse<

@@ -62,6 +62,37 @@ export namespace BinanceCoinProviderTypes {
 		tokens: string[];
 	};
 
+	export type UiKlineResponse = Array<
+		[
+			number,
+			string,
+			string,
+			string,
+			string,
+			string,
+			number,
+			string,
+			number,
+			string,
+			string,
+			string,
+		]
+	>;
+
+	export type KlineDatas = Array<{
+		openTime: number;
+		open: Dnum;
+		high: Dnum;
+		low: Dnum;
+		close: Dnum;
+		volume: Dnum;
+		closeTime: number;
+		quoteAssetVolume: Dnum;
+		tradeCount: number;
+		takerBuyBaseAssetVolume: Dnum;
+		takerBuyQuoteAssetVolume: Dnum;
+	}>;
+
 	export type RawStreamEvent<T> = {
 		stream: string;
 		data: T;
@@ -126,4 +157,6 @@ export namespace TokocryptoCoinProviderTypes {
 	export type RawStreamEvent<T> = BinanceCoinProviderTypes.RawStreamEvent<T>;
 	export type RawStreamAggTrade = BinanceCoinProviderTypes.RawStreamAggTrade;
 	export type RawStreamKline = BinanceCoinProviderTypes.RawStreamKline;
+	export type UiKlineResponse = BinanceCoinProviderTypes.UiKlineResponse;
+	export type KlineDatas = BinanceCoinProviderTypes.KlineDatas;
 }

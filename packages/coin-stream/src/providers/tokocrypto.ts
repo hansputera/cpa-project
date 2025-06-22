@@ -1,6 +1,9 @@
 import { WebSocket } from "ws";
 import { CoinStreamProvider } from "./base.js";
-import type { TokocryptoCoinProviderTypes } from "../types/index.js";
+import type {
+	BinanceCoinProviderTypes,
+	TokocryptoCoinProviderTypes,
+} from "../types/index.js";
 import { jsonParse } from "../utils/jsonParse.js";
 import * as dnum from "dnum";
 
@@ -52,6 +55,36 @@ export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinPro
 
 		// Reset the retry count
 		this.retryCount = 0;
+	}
+
+	public async getKline(): Promise<BinanceCoinProviderTypes.KlineDatas> {
+		const url = new URL("https://www.tokocrypto.asia/api/v3/uiKlines");
+		url.searchParams.set("limit", "1000");
+		url.searchParams.set("symbol", this.token);
+		url.searchParams.set("interval", this.timeframe);
+
+		const json = (await fetch(url).catch(() => undefined))
+			?.json()
+			.catch(() => undefined) as
+			| TokocryptoCoinProviderTypes.UiKlineResponse
+			| undefined;
+		if (!json) {
+			return [];
+		}
+
+		return json.map((j) => ({
+			openTime: j[0],
+			open: dnum.from(j[1]),
+			high: dnum.from(j[2]),
+			low: dnum.from(j[3]),
+			close: dnum.from(j[4]),
+			volume: dnum.from(j[5]),
+			closeTime: j[6],
+			quoteAssetVolume: dnum.from(j[7]),
+			tradeCount: j[8],
+			takerBuyBaseAssetVolume: dnum.from(j[8]),
+			takerBuyQuoteAssetVolume: dnum.from(j[9]),
+		}));
 	}
 
 	protected onWsError(err: Error): void {

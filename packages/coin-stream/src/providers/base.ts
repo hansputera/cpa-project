@@ -1,5 +1,8 @@
 import EventEmitter from "node:events";
-import type { CoinStreamTypes } from "../types/index.js";
+import type {
+	BinanceCoinProviderTypes,
+	CoinStreamTypes,
+} from "../types/index.js";
 
 export abstract class CoinStreamProvider<
 	T,
@@ -8,10 +11,12 @@ export abstract class CoinStreamProvider<
 	 * @constructor
 	 * @param token Crypto token code to provider
 	 * @param payload Coin stream payload
+	 * @param timeframe Coin stream timeframe
 	 */
 	constructor(
 		protected token: string,
 		protected payload: T,
+		protected timeframe: string,
 	) {
 		super();
 	}
@@ -21,6 +26,8 @@ export abstract class CoinStreamProvider<
 	 * @example binance, coinbase, coingecko
 	 */
 	public abstract get provider(): string;
+
+	public abstract getKline(): Promise<BinanceCoinProviderTypes.KlineDatas>;
 
 	/**
 	 * Initialize coin stream provider to connect
