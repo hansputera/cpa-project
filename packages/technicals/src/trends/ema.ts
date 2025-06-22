@@ -57,7 +57,12 @@ export class EmaCrossDetector {
 		protected readonly shortEma: EMA,
 		protected readonly longEma: EMA,
 	) {}
-
+	
+	/**
+	 * Get current cross EMA (automatically update short & long EMA data)
+	 * @param newClose New close price
+	 * @return {CrossType | undefined}
+	 */
 	update(newClose: dnum.Dnum): CrossType | undefined {
 		const prevShort = this.shortEma.emaValue;
 		const prevLong = this.longEma.emaValue;
