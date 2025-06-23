@@ -1,5 +1,2 @@
-import { RSI } from "./rsi.js";
-
-export namespace Momentums {
-	RSI;
-}
+export { RSI } from "./rsi.js";
+export { RSIMovingAverage } from "./rsima.js";

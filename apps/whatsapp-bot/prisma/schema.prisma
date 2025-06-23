@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model TwitterGroupSubscribe {
+  id         BigInt   @id @default(autoincrement())
+  groupJid   String   @map("group_jid")
+  subscribes String[] @default([]) @map("twitter_usn_subscribes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("twitter_group_subscribes")
+}

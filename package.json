@@ -10,6 +10,7 @@
     "lint": "turbo run lint --parallel",
     "format": "turbo run format --parallel",
     "start": "turbo run start",
+    "migrate": "turbo run migrate",
     "hook": "node hook.js --max-old-space-size=50M"
   },
   "type": "module",

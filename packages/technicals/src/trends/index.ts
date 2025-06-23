@@ -1,6 +1,3 @@
-import { EMA, EmaCrossDetector } from "./ema.js";
-
-export namespace Trends {
-	EMA;
-	EmaCrossDetector;
-}
+export { EMA } from "./ema.js";
+export { SMA } from "./sma.js";
+export { RMA } from "./rma.js";

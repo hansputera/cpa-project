@@ -1,99 +1,29 @@
-import * as dnum from "dnum";
-import type { CrossType } from "../types/index.js";
+import * as dn from "dnum";
+import type { Candle } from "../types/index.js";
 
 export class EMA {
-	protected alpha: number;
-	protected currentEma: dnum.Dnum;
+	#period: number;
+	#multiplier: dn.Dnum;
+	#ema: dn.Dnum;
+	public value: dn.Dnum;
 
-	constructor(
-		protected value: number,
-		protected closePrices: dnum.Dnum[],
-	) {
-		this.alpha = 2 / (value + 1);
-		this.#init();
+	constructor(period: number) {
+		this.#period = period;
+		// α = 2/(period+1)
+		this.#multiplier = dn.divide(dn.from(2, 0), dn.from(period + 1, 0));
 	}
 
-	#init(): void {
-		if (this.closePrices.length < this.value) {
-			throw new Error(
-				`need ${this.value} close prices for this EMA(${this.value})`,
-			);
-		}
-
-		const summary = this.closePrices
-			.slice(0, this.value)
-			.reduce((a, b) => dnum.add(a, b), dnum.from(0));
-		this.currentEma = dnum.divide(summary, this.value);
-	}
-
-	public get emaValue() {
-		return this.currentEma;
-	}
-
-	public update(newClose: dnum.Dnum): dnum.Dnum {
-		if (!this.currentEma) {
-			this.currentEma = dnum.from(newClose);
+	update(candle: Candle) {
+		const price = dn.from(candle.close, 8);
+		if (this.#ema === null) {
+			// Inisialisasi: EMA pertama = harga pertama
+			this.#ema = price;
 		} else {
-			this.currentEma = dnum.add(
-				dnum.multiply(newClose, this.alpha),
-				dnum.multiply(this.currentEma, 1 - this.alpha),
-			);
+			// EMA = prevEMA + (price - prevEMA) * α
+			const diff = dn.subtract(price, this.#ema);
+			const incr = dn.multiply(diff, this.#multiplier, 8);
+			this.#ema = dn.add(this.#ema, incr);
 		}
-
-		return this.currentEma;
-	}
-}
-
-/**
- * @class EmaCrossDetector
- */
-export class EmaCrossDetector {
-	/**
-	 * @constructor
-	 * @param shortEma Shortest EMA period
-	 * @param longEma Longest EMA Period
-	 */
-	constructor(
-		protected readonly shortEma: EMA,
-		protected readonly longEma: EMA,
-	) {}
-	
-	/**
-	 * Get current cross EMA (automatically update short & long EMA data)
-	 * @param newClose New close price
-	 * @return {CrossType | undefined}
-	 */
-	update(newClose: dnum.Dnum): CrossType | undefined {
-		const prevShort = this.shortEma.emaValue;
-		const prevLong = this.longEma.emaValue;
-
-		const currentShort = this.shortEma.update(newClose);
-		const currentLong = this.longEma.update(newClose);
-
-		const result = this.#detect(prevShort, prevLong, currentShort, currentLong);
-		return result;
-	}
-
-	#detect(
-		previousShort: dnum.Dnum,
-		previousLong: dnum.Dnum,
-		currentShort: dnum.Dnum,
-		currentLong: dnum.Dnum,
-	): CrossType | undefined {
-		if (
-			dnum.lessThan(previousShort, previousLong) &&
-			dnum.greaterThan(currentShort, currentLong)
-		) {
-			return "golden";
-		}
-
-		if (
-			dnum.greaterThan(previousShort, previousLong) &&
-			dnum.lessThan(currentShort, currentLong)
-		) {
-			return "death";
-		}
-
-		return undefined;
+		this.value = this.#ema;
 	}
 }

@@ -9,6 +9,9 @@
       "persistent": true,
       "cache": false
     },
+    "migrate": {
+      "cache": false
+    },
     "lint": {},
     "format": {},
     "start": {

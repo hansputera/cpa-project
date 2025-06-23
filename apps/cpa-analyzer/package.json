@@ -1,0 +1,35 @@
+{
+    "name": "@cpa/analyzer-app",
+    "description": "CPA Analyzer App",
+    "version": "0.0.1",
+    "devDependencies": {
+        "@biomejs/biome": "1.8.3",
+        "@cpa/biome-config": "workspace:*",
+        "@cpa/tsconfig": "workspace:*",
+        "@dotenvx/dotenvx": "^1.44.1",
+        "@swc/core": "^1.11.29",
+        "@types/node": "^22.15.21",
+        "@types/pg": "^8.15.4",
+        "tsup": "^8.5.0",
+        "typescript": "^5.8.3"
+    },
+    "scripts": {
+        "lint": "biome lint --write ./src",
+        "format": "biome format --write ./src",
+        "build": "tsup",
+        "start": "dotenvx run -- node .",
+        "migrate": "dotenvx run -- node ./dist/database/migrator.js"
+    },
+    "main": "./dist/index.js",
+    "type": "module",
+    "dependencies": {
+        "@cpa/coin-stream": "workspace:*",
+        "@cpa/technicals": "workspace:*",
+        "dnum": "^2.15.0",
+        "envalid": "^8.0.0",
+        "hono": "^4.8.2",
+        "ioredis": "^5.6.1",
+        "kysely": "^0.28.2",
+        "pg": "^8.16.2"
+    }
+}

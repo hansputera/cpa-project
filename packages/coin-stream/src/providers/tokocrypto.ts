@@ -57,17 +57,47 @@ export class TokocryptoCoinProvider extends CoinStreamProvider<TokocryptoCoinPro
 		this.retryCount = 0;
 	}
 
-	public async getKline(): Promise<BinanceCoinProviderTypes.KlineDatas> {
+	async #getTokocryptoUserJwt(): Promise<string | undefined> {
+		const response = await fetch(
+			"https://www.tokocrypto.com/bapi/accounts/v1/friendly/account/eternal/user/get-user-jwt",
+			{
+				method: "POST",
+			},
+		).catch(() => undefined);
+		if (!response) {
+			return undefined;
+		}
+
+		const json = jsonParse<{
+			data: {
+				token: string;
+			};
+		}>(await response.text());
+
+		return json?.data.token;
+	}
+
+	public async getKline(
+		limit = 1000,
+	): Promise<BinanceCoinProviderTypes.KlineDatas> {
 		const url = new URL("https://www.tokocrypto.asia/api/v3/uiKlines");
-		url.searchParams.set("limit", "1000");
+		url.searchParams.set("limit", limit.toString());
 		url.searchParams.set("symbol", this.token);
 		url.searchParams.set("interval", this.timeframe);
 
-		const json = (await fetch(url).catch(() => undefined))
-			?.json()
-			.catch(() => undefined) as
-			| TokocryptoCoinProviderTypes.UiKlineResponse
-			| undefined;
+		const token = await this.#getTokocryptoUserJwt();
+		const response = await fetch(url, {
+			headers: {
+				"Device-Info": token ?? "",
+			},
+		}).catch(() => undefined);
+		if (!response) {
+			return [];
+		}
+
+		const json = jsonParse<TokocryptoCoinProviderTypes.UiKlineResponse>(
+			await response.text(),
+		);
 		if (!json) {
 			return [];
 		}

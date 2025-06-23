@@ -68,9 +68,11 @@ export class BinanceCoinProvider extends CoinStreamProvider<BinanceCoinProviderT
 		url.searchParams.set("symbol", this.token);
 		url.searchParams.set("interval", this.timeframe);
 
-		const json = (await fetch(url).catch(() => undefined))
+		const json = (await (
+			await fetch(url).catch(() => undefined)
+		)
 			?.json()
-			.catch(() => undefined) as
+			.catch(() => undefined)) as
 			| BinanceCoinProviderTypes.UiKlineResponse
 			| undefined;
 		if (!json) {

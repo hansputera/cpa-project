@@ -1,7 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - '@swc/core'
+  - baileys
   - esbuild
-packages:
-  - "apps/*"
-  - "packages/*"
+  - protobufjs

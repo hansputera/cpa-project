@@ -1,82 +1,98 @@
-import * as dnum from "dnum";
+import * as dn from "dnum";
+import type { Candle } from "../types/index.js";
 
+/**
+ * RSI Indicator (Relative Strength Index)
+ * Formula: RSI = 100 * AvgGain/(AvgGain+AvgLoss):contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}.
+ */
 export class RSI {
-	protected averageGain = dnum.from(0);
-	protected averageLoss = dnum.from(0);
-	protected prevClose = dnum.from(0);
-	#initialized = false;
+	#period: number;
+	#prevAvgGain: dn.Dnum;
+	#prevAvgLoss: dn.Dnum;
+	#prevCloseNum: dn.Dnum;
+	#prevClose: dn.Dnum;
+	#sumGain: dn.Dnum;
+	#sumLoss: dn.Dnum;
+	#count: number;
+	public value: dn.Dnum;
 
-	constructor(
-		protected closePrices: dnum.Dnum[],
-		protected candles = 14,
-	) {
-		if (!this.#initialized) {
-			this.#init();
-		}
+	constructor(period: number) {
+		this.#period = period;
+		this.#prevAvgGain = dn.from(0, 0);
+		this.#prevAvgLoss = dn.from(0, 0);
+		this.#sumGain = dn.from(0, 0);
+		this.#sumLoss = dn.from(0, 0);
+		this.#count = 0;
+		this.value = dn.from(0, 0);
 	}
 
-	#init(): void {
-		if (this.closePrices.length < this.candles + 1) {
-			throw new Error(`Need ${this.candles + 1} candles to init`);
-		}
-
-		const summaries = {
-			gain: dnum.from(0),
-			loss: dnum.from(0),
-		};
-
-		for (let i = 0; i <= this.candles; i++) {
-			const delta = dnum.sub(this.closePrices[i], this.closePrices[i - 1]);
-			if (dnum.greaterThan(delta, 0)) {
-				summaries.gain = dnum.add(summaries.gain, delta);
-			} else {
-				summaries.loss = dnum.sub(summaries.loss, delta);
+	update(candle: Candle) {
+		const close = dn.from(candle.close, 8); // presisi 8 desimal
+		// Tahap inisialisasi untuk periode pertama
+		if (this.#count < this.#period) {
+			if (this.#count === 0) {
+				// Bar pertama: tidak ada perhitungan, hanya simpan harga
+				this.#prevCloseNum = candle.close;
+				this.#prevClose = close;
+				this.#count++;
+				return;
 			}
+			// Hitung diff, gain/loss
+			const diff = dn.sub(candle.close, this.#prevCloseNum);
+			const gain = dn.greaterThan(diff, 0) ? diff : 0;
+			const loss = dn.lessThan(diff, 0) ? diff : 0;
+
+			// Akumulasi gain/loss awal
+			this.#sumGain = dn.add(this.#sumGain, dn.from(gain, 8));
+			this.#sumLoss = dn.sub(this.#sumLoss, dn.from(loss, 8));
+			this.#prevCloseNum = candle.close;
+			this.#prevClose = close;
+			this.#count++;
+			// Setelah cukup periode, hitung RSI pertama
+			if (this.#count === this.#period) {
+				this.#prevAvgGain = dn.divide(this.#sumGain, this.#period);
+				this.#prevAvgLoss = dn.divide(this.#sumLoss, this.#period);
+				// RSI = 100 * AvgGain/(AvgGain+AvgLoss)
+				if (this.#prevAvgLoss[0] === 0n) {
+					this.value = dn.from(100, 0);
+				} else {
+					const rs = dn.divide(this.#prevAvgGain, this.#prevAvgLoss);
+					this.value = dn.divide(
+						dn.multiply(dn.from(100, 0), rs),
+						dn.add(dn.from(1, 0), rs),
+					);
+				}
+			}
+			return;
 		}
+		// Wilder smoothing setelah periode pertama
+		const diff = dn.sub(candle.close, this.#prevCloseNum);
+		const gain = dn.greaterThan(diff, 0) ? diff : 0;
+		const loss = dn.lessThan(diff, 0) ? diff : 0;
+		const gainD = dn.from(gain, 8);
+		const lossD = dn.from(loss, 8);
 
-		this.averageGain = dnum.divide(summaries.gain, this.candles);
-		this.averageLoss = dnum.divide(summaries.loss, this.candles);
-		this.prevClose = this.closePrices[this.closePrices.length - 1];
-		this.#initialized = true;
-	}
-
-	public update(newClose: dnum.Dnum): dnum.Dnum | undefined {
-		if (!this.#initialized) {
-			return undefined;
-		}
-
-		const delta = dnum.sub(newClose, this.prevClose);
-		const isGain = dnum.greaterThan(delta, 0);
-		const isLoss = dnum.lessThan(delta, 0);
-
-		this.averageGain = dnum.divide(
-			dnum.add(
-				dnum.multiply(this.averageGain, this.candles - 1),
-				isGain ? delta : 0,
-			),
-			this.candles,
+		// Update rata-rata Wilder: (prev*(n-1) + current)/n
+		this.#prevAvgGain = dn.divide(
+			dn.add(dn.multiply(this.#prevAvgGain, this.#period - 1), gainD),
+			this.#period,
 		);
-
-		this.averageLoss = dnum.divide(
-			dnum.subtract(
-				dnum.multiply(this.averageLoss, this.candles - 1),
-				isLoss ? delta : 0,
-			),
-			this.candles,
+		this.#prevAvgLoss = dn.divide(
+			dn.sub(dn.multiply(this.#prevAvgLoss, this.#period - 1), lossD),
+			this.#period,
 		);
+		this.#prevCloseNum = candle.close;
+		this.#prevClose = close;
 
-		this.prevClose = newClose;
-
-		if (dnum.eq(this.averageLoss, 0)) {
-			return dnum.from(100);
+		// Hitung RSI saat ini
+		if (this.#prevAvgLoss[0] === 0n) {
+			this.value = dn.from(100, 0);
+		} else {
+			const rs = dn.divide(this.#prevAvgGain, this.#prevAvgLoss);
+			this.value = dn.divide(
+				dn.multiply(dn.from(100, 0), rs),
+				dn.add(dn.from(1, 0), rs),
+			);
 		}
-
-		if (dnum.eq(this.averageGain, 0)) {
-			return dnum.from(0);
-		}
-
-		const rs = dnum.div(this.averageGain, this.averageLoss);
-		const rsi = dnum.sub(100, dnum.divide(100, dnum.add(1, rs)));
-		return rsi;
 	}
 }
