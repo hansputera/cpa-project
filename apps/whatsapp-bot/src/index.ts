@@ -134,18 +134,18 @@ client.command(
 );
 
 await client.launch().then(async () => {
-	const twitterData = await prismaClient.twitterGroupSubscribe.findMany({
+	await twitter.init().catch(async () => {
+		const twitterData = await prismaClient.twitterGroupSubscribe.findMany({
 		select: {
 			subscribes: true,
-		},
+			},
+		});
+
+		for (const tw of twitterData) {
+			await twitter.register(tw.subscribes.map(s => ({
+				username: s,
+				intervalPool: 30_000,
+			})));
+		}
 	});
-
-	for (const tw of twitterData) {
-		await twitter.register(tw.subscribes.map(s => ({
-			username: s,
-			intervalPool: 30_000,
-		})));
-	}
-
-	await twitter.init();
 });
