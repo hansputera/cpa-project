@@ -98,6 +98,18 @@ export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 		}
 	}
 
+	public async register(targets: TwitterTarget[]) {
+		const maps = targets.map(
+			this.queueManager.sendFetchJob.bind(this.queueManager),
+		);
+		const results = await Promise.allSettled(maps);
+
+		return results.map((n, i) => ({
+			succeed: n.status === "fulfilled",
+			username: targets[i].username,
+		}));
+	}
+
 	/**
 	 * Get cookies from current instance
 	 */
