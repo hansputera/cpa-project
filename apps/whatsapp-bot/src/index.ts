@@ -144,7 +144,7 @@ async function botWa() {
 			await twitter.register(
 				result.subscribes.map((s) => ({
 					username: s,
-					intervalPool: 30_000,
+					intervalPool: 90_000,
 				})),
 			);
 
@@ -224,7 +224,7 @@ async function botWa() {
 			await twitter.unreg(
 				unregisteredUsns.map((n) => ({
 					username: n,
-					intervalPool: 30_000,
+					intervalPool: 90_000,
 				})),
 			);
 
@@ -322,7 +322,7 @@ await twitter.init().then(async () => {
 			await twitter.register(
 				g.subscribes.map((u) => ({
 					username: u,
-					intervalPool: 30_000,
+					intervalPool: 90_000,
 				})),
 			);
 		}
