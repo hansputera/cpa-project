@@ -16,6 +16,7 @@ import { Cookie } from "tough-cookie";
 import EventEmitter from "node:events";
 import { TwitterQueueManager } from "./queue.js";
 import { createRedisClient } from "./redis/redis.js";
+import type { Redis } from "ioredis";
 
 /**
  * @class TwitterNews
@@ -23,6 +24,8 @@ import { createRedisClient } from "./redis/redis.js";
 export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 	protected scraper: Scraper;
 	protected queueManager: TwitterQueueManager;
+	protected redis: Redis;
+
 	#profile: Profile;
 
 	/**
@@ -35,6 +38,7 @@ export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 		this.scraper = new Scraper({
 			rateLimitStrategy: new ErrorRateLimitStrategy(),
 		});
+		this.redis = createRedisClient(params.cache.redisUri);
 	}
 
 	public get profile(): Profile {
@@ -75,7 +79,7 @@ export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 
 		// Initialize queue manager
 		this.queueManager = new TwitterQueueManager({
-			redis: createRedisClient(this.params.cache.redisUri),
+			redis: this.redis,
 			scraper: this.scraper,
 			cacheTtl: this.params.cache.ttl,
 		});
@@ -103,11 +107,20 @@ export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 			this.queueManager.sendFetchJob.bind(this.queueManager),
 		);
 		const results = await Promise.allSettled(maps);
-
-		return results.map((n, i) => ({
+		const data = results.map((n, i) => ({
 			succeed: n.status === "fulfilled",
 			username: targets[i].username,
+			interval: targets[i].intervalPool,
 		}));
+
+		this.params.targets = this.params.targets.concat(
+			data.map((n) => ({
+				username: n.username,
+				intervalPool: n.interval,
+			})),
+		);
+
+		return data;
 	}
 
 	/**
@@ -130,6 +143,43 @@ export class TwitterNews extends EventEmitter<TwitterNewsEvent> {
 		} catch {
 			return undefined;
 		}
+	}
+
+	public async unreg(targets: TwitterTarget[]) {
+		const maps = targets.map((t) => this.queueManager.removeFetchJob(t));
+		const results = await Promise.allSettled(maps);
+		const data = results.map((n, i) => ({
+			succeed: n.status === "fulfilled",
+			username: targets[i].username,
+		}));
+
+		this.params.targets = this.params.targets.filter((n) =>
+			data.findIndex((x) => x.succeed && x.username === n.username),
+		);
+
+		return data;
+	}
+
+	public async fetchUser(username: string): Promise<Profile | undefined> {
+		const cacheKey = `twitter_user:${username}`;
+		const cacheResult = await this.redis.get(cacheKey);
+
+		if (cacheResult) {
+			return JSON.parse(cacheResult);
+		}
+
+		const user = await this.scraper.getProfile(username).catch(() => undefined);
+		if (!user) {
+			return undefined;
+		}
+
+		await this.redis.setex(
+			cacheKey,
+			this.params.cache.ttl,
+			JSON.stringify(user),
+		);
+
+		return user;
 	}
 
 	/**

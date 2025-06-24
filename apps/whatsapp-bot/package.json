@@ -9,6 +9,7 @@
         "@dotenvx/dotenvx": "^1.44.1",
         "@swc/core": "^1.11.29",
         "@types/node": "^22.15.21",
+        "@types/qrcode-terminal": "^0.12.2",
         "prisma": "^6.10.1",
         "tsup": "^8.5.0",
         "typescript": "^5.8.3"
@@ -26,9 +27,11 @@
         "@cpa/coin-stream": "workspace:*",
         "@cpa/google-scraper": "workspace:*",
         "@cpa/twitter-news-stream": "workspace:*",
+        "@hapi/boom": "^10.0.1",
         "@prisma/client": "^6.10.1",
+        "baileys": "^6.7.18",
         "envalid": "^8.0.0",
-        "gampang": "^2.3.7",
-        "ioredis": "^5.6.1"
+        "ioredis": "^5.6.1",
+        "qrcode-terminal": "^0.12.0"
     }
 }

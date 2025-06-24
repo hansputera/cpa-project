@@ -5,7 +5,6 @@ import {
 	type TwitterQueueManagerParams,
 	type TwitterTarget,
 } from "./types/index.js";
-import { randomUUID } from "node:crypto";
 import type { Scraper, Tweet } from "@the-convocation/twitter-scraper";
 import type { Redis } from "ioredis";
 import { EventEmitter } from "node:events";
@@ -64,9 +63,8 @@ export class TwitterQueueManager {
 
 	protected async fetchTweetsFromUser(username: string): Promise<TweetReturn> {
 		const cacheKey = `10_tweets:${username}`;
-		const timeline = this.scraper.getTweets(username, 10);
+		const timeline = this.scraper.getTweets(username, 20);
 		const tweetCached = await this.fetchCacheTweetsFromUser(username);
-
 		const tweetsRest = await this.scraper.getTweetsWhere(timeline, {
 			isRetweet: false,
 			isQuoted: false,
@@ -90,12 +88,21 @@ export class TwitterQueueManager {
 		};
 	}
 
+	public async removeFetchJob(target: TwitterTarget): Promise<void> {
+		const keys = await this.fetchQueue.getJobSchedulers(1, 100);
+		const targetKey = keys.find((k) => k.id === `job::${target.username}`);
+
+		if (targetKey?.id) {
+			await this.fetchQueue.removeJobScheduler(targetKey.id);
+		} else {
+			throw new Error("Failed to remove, because it doesnt exist");
+		}
+	}
+
 	public async sendFetchJob(target: TwitterTarget): Promise<void> {
 		if (this.workers.has(target.username)) {
 			throw new Error(`This username ${target.username} already registered`);
 		}
-
-		const jobId = randomUUID();
 
 		this.workers.set(
 			target.username,
@@ -105,7 +112,7 @@ export class TwitterQueueManager {
 		);
 
 		await this.fetchQueue.upsertJobScheduler(
-			jobId,
+			`job::${target.username}`,
 			{
 				every: target.intervalPool,
 				tz: "Asia/Makassar",

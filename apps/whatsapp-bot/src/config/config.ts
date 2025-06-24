@@ -17,4 +17,7 @@ export const configEnv = cleanEnv(process.env, {
 	TWITTER_TARGETS: str({
 		default: "DeItaone,rovercrc,unusual_whales",
 	}),
+	TWITTER_2FA: str({
+		default: "",
+	}),
 });

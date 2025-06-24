@@ -8,8 +8,8 @@ generator client {
 }
 
 model TwitterGroupSubscribe {
-  id         BigInt   @id @default(autoincrement())
-  groupJid   String   @map("group_jid")
+  id         Int      @id @default(autoincrement())
+  groupJid   String   @unique @map("group_jid")
   subscribes String[] @default([]) @map("twitter_usn_subscribes")
 
   createdAt DateTime @default(now()) @map("created_at")
