@@ -1,7 +1,7 @@
 import { Client, SessionManager } from "gampang";
 import { configEnv } from "./config/config.js";
 import { prismaClient } from "./database/prisma.js";
-import { twitter, twitterTargets } from "./streams/twitter.js";
+import { twitter } from "./streams/twitter.js";
 
 const sessionManager = new SessionManager(configEnv.SESSION_PATH, "folder");
 const client = new Client(sessionManager, {
@@ -87,14 +87,6 @@ client.command(
 			return;
 		}
 
-		const notFoundUsername = usernames.filter(
-			(u) => !twitterTargets.includes(u),
-		);
-
-		if (notFoundUsername.length) {
-			await ctx.reply(`Not in whitelist: ${notFoundUsername.join(", ")}`);
-		}
-
 		const data = await prismaClient.$transaction(async (tx) => {
 			const prevData = await tx.twitterGroupSubscribe.findFirst({
 				where: {
@@ -102,14 +94,15 @@ client.command(
 				},
 			});
 
-			const existingUser = usernames.find((u) =>
-				prevData?.subscribes.includes(u),
+			const subscribeResults = await twitter.register(
+				usernames.map((u) => ({
+					username: u,
+					intervalPool: 30_000,
+				})),
 			);
-
-			if (existingUser) {
-				await ctx.reply(`This username ${existingUser} is already subscribed`);
-				return undefined;
-			}
+			const successResults = subscribeResults
+				.filter((s) => s.succeed)
+				.map((s) => s.username);
 
 			return prismaClient.twitterGroupSubscribe.upsert({
 				where: {
@@ -118,20 +111,18 @@ client.command(
 				},
 				update: {
 					subscribes: {
-						push: usernames.filter((u) => twitterTargets.includes(u)),
+						push: successResults,
 					},
 				},
 				create: {
 					groupJid: ctx.raw.key.remoteJid ?? "",
-					subscribes: usernames.filter((u) => twitterTargets.includes(u)),
+					subscribes: successResults,
 				},
 			});
 		});
 
 		if (data) {
-			await ctx.reply(
-				`Saved as ${data.groupJid} (subs: ${usernames.filter((u) => twitterTargets.includes(u))})`,
-			);
+			await ctx.reply('Saved.');
 		}
 	},
 	{
@@ -143,5 +134,18 @@ client.command(
 );
 
 await client.launch().then(async () => {
+	const twitterData = await prismaClient.twitterGroupSubscribe.findMany({
+		select: {
+			subscribes: true,
+		},
+	});
+
+	for (const tw of twitterData) {
+		await twitter.register(tw.subscribes.map(s => ({
+			username: s,
+			intervalPool: 30_000,
+		})));
+	}
+
 	await twitter.init();
 });

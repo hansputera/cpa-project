@@ -5,7 +5,7 @@ export const configEnv = cleanEnv(process.env, {
 		default: "redis://localhost:6379",
 	}),
 	REDIS_TTL: num({
-		default: 60 * 60 * 60,
+		default: 60 * 60 * 60 * 24,
 	}),
 	SESSION_PATH: str({
 		default: "./wa_session",

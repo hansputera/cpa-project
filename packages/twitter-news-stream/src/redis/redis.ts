@@ -4,4 +4,5 @@ export const createRedisClient = (uri: string) =>
 	new Redis(uri, {
 		connectionName: "TwitterNewsStream",
 		maxRetriesPerRequest: null,
+		enableOfflineQueue: true,
 	});
